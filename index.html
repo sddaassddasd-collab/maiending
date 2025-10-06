@@ -39,7 +39,7 @@
       position: fixed; inset: 0;
       background:#fff; opacity: 0;
       pointer-events: none;
-      transition: opacity 0s linear;
+      transition: opacity 0s linear; /* 初始無動畫，點擊時瞬間全白 */
     }
   </style>
 </head>
@@ -52,17 +52,21 @@
 
   <div id="veil" class="veil" aria-hidden="true"></div>
 
-  <!-- 音效：結尾音樂 -->
+  <!-- 結尾音效 -->
   <audio id="endingSfx" src="ending.mp3" preload="auto" playsinline></audio>
 
   <script>
     (function () {
-      const img = document.getElementById('photo');
-      const btn = document.getElementById('shoot');
-      const veil = document.getElementById('veil');
-      const sfx = document.getElementById('endingSfx');
+      // 可調整參數：等待 4 秒後開始淡出、淡出 1 秒
+      const HOLD_MS = 4000;   // 全白停留時間
+      const FADE_MS = 4000;   // 淡出時間
 
-      // 預先載入下一張圖片
+      const img  = document.getElementById('photo');
+      const btn  = document.getElementById('shoot');
+      const veil = document.getElementById('veil');
+      const sfx  = document.getElementById('endingSfx');
+
+      // 預載下一張圖
       const nextImage = new Image();
       nextImage.src = 'ending2.jpg';
 
@@ -70,23 +74,22 @@
         if (btn.disabled) return;
         btn.disabled = true;
 
-        // 先播放音效（以使用者手勢觸發）
+        // 播放音效（以使用者手勢觸發）
         try {
           sfx.currentTime = 0;
           await sfx.play();
         } catch (err) {
-          // 若播放被阻擋，不中斷後續流程
           console.warn('Audio play was blocked:', err);
         }
 
-        // 點擊後立即隱藏按鈕
+        // 隱藏按鈕
         btn.style.display = 'none';
 
-        // 立刻全白
+        // 立刻閃白（瞬間全白）
         veil.style.transition = 'opacity 0s linear';
         veil.style.opacity = '1';
 
-        // 確保下一張圖片已載入
+        // 確保下一張圖載入完成
         if (!nextImage.complete) {
           try {
             await new Promise((resolve, reject) => {
@@ -100,14 +103,14 @@
           }
         }
 
-        // 切換圖片
+        // 在全白時切換到底圖（使用者看不到切換瞬間）
         img.src = nextImage.src;
 
-        // 啟動 4 秒淡出白幕
-        requestAnimationFrame(() => {
-          veil.style.transition = 'opacity 4s ease';
+        // 等待 HOLD_MS 毫秒後才開始淡出白幕
+        setTimeout(() => {
+          veil.style.transition = `opacity ${FADE_MS}ms ease`;
           veil.style.opacity = '0';
-        });
+        }, HOLD_MS);
       });
     })();
   </script>
